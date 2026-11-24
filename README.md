@@ -1,0 +1,372 @@
+# GamePortal — Esports Tournament Management Platform
+
+**GamePortal** is a full-stack esports tournament portal for players and organizers. Players can discover and join tournaments, view schedules, and manage registrations. Organizers can create and manage tournaments. The project also supports email/password authentication and Discord OAuth login.
+
+**Live website:** https://gameportal-sable.vercel.app  
+**Backend:** https://gameportal-backend.onrender.com  
+**Source repository:** https://github.com/aksshuuu/gameportal
+
+## 1. Project overview
+
+GamePortal aims to provide a central place to discover esports tournaments, manage participation, and follow upcoming matches. It separates player and organizer experiences and connects a React frontend to an Express REST API and a MongoDB database.
+
+### Implemented and manually tested functionality
+
+- **Player accounts:** registration, login, authenticated dashboard, and logout.
+- **Organizer accounts:** registration, login, authenticated dashboard, and logout.
+- **Discord OAuth:** account registration and returning-user login, using a server-side OAuth callback.
+- **Authentication synchronization:** the navigation bar updates after login or registration without requiring a page refresh.
+- **Tournament browsing:** listings and associated dates are retrieved from the backend.
+- **Organizer tournament management:** creating and deleting a test tournament.
+- **Player tournament participation:** joining and unregistering from a test tournament.
+- **Deployment:** frontend on Vercel, backend on Render, data stored in MongoDB.
+
+These features were checked manually during project development. This is **not** a claim that automated, security, accessibility, or load testing has been completed.
+
+## 2. Technology stack
+
+| Layer | Technologies | Purpose |
+| --- | --- | --- |
+| Frontend | React 19, Vite 8, React Router | User interface and page routing |
+| State/API | Redux Toolkit, React Redux, Axios | State management and server communication |
+| Styling | CSS | Layout, responsive design, and UI components |
+| Backend | Node.js, Express 5 | REST API and application logic |
+| Database | MongoDB, Mongoose | Persistent user and tournament data |
+| Authentication | bcryptjs, JSON Web Tokens | Password verification and authentication |
+| OAuth | Discord OAuth2 | Optional Discord sign-in |
+| Hosting | Vercel, Render, MongoDB Atlas | Production frontend, API, and database |
+| Version control | Git, GitHub | Source control and collaboration |
+
+Versions are based on the repository's `frontend/package.json` and `backend/package.json`; your installed versions may vary with the lockfiles.
+
+## 3. Project structure and important files
+
+The following are the **main confirmed files and directories**, not an exhaustive inventory of every file in the repository. The repository also contains additional assets, support components, and development files.
+
+```text
+ gameportal/
+ ├── README.md                         # Project documentation
+ ├── .gitignore                        # Ignored local/secrets/build files
+ ├── package.json                      # Root project configuration
+ ├── package-lock.json
+ ├── backend/
+ │   ├── server.js                     # Express server, middleware, API mounting
+ │   ├── package.json                  # Backend dependencies and scripts
+ │   ├── .env.example                  # Backend environment variable template
+ │   ├── models/
+ │   │   ├── User.js                   # User account model
+ │   │   └── Tournament.js             # Tournament model
+ │   ├── routes/
+ │   │   ├── auth.js                   # Email/password and Discord auth endpoints
+ │   │   └── tournaments.js            # Tournament and registration endpoints
+ │   └── scripts/
+ │       └── seedCommunityTournaments.js # Optional sample-data script
+ └── frontend/
+     ├── index.html                    # Frontend HTML entry point
+     ├── package.json                  # Frontend dependencies and scripts
+     ├── src/
+     │   ├── main.jsx                 # React app startup
+     │   ├── App.jsx                  # Main application/router
+     │   ├── App.css                  # Additional styling
+     │   ├── index.css                # Global, layout, and page styling
+     │   ├── store.js                 # Redux store configuration
+     │   ├── services/
+     │   │   ├── api.js                # Axios API client
+     │   │   └── apiSlice.js           # RTK Query API definitions
+     │   ├── components/
+     │   │   ├── SiteLayout.jsx        # Header, navigation, footer, auth state
+     │   │   ├── GamingLogo.jsx        # Homepage graphic component
+     │   │   ├── GamingLogo.css        # Homepage graphic styling
+     │   │   ├── FeedbackState.jsx     # Loading/error/empty-state UI
+     │   │   ├── MatchCard.jsx         # Match-related UI component
+     │   │   └── PageHeader.jsx        # Shared page heading component
+     │   └── pages/
+     │       ├── Home.jsx              # Hero, featured tournaments, site links
+     │       ├── Register.jsx          # Registration and Discord entry point
+     │       ├── Login.jsx             # Email and Discord login
+     │       ├── OAuthCallback.jsx     # Handles frontend OAuth redirect
+     │       ├── Dashboard.jsx         # Account/dashboard features
+     │       ├── Tournaments.jsx       # Tournament listing and actions
+     │       ├── Matches.jsx           # Tournament dates and matches
+     │       ├── Teams.jsx             # Team-related page
+     │       ├── Leaderboard.jsx       # Leaderboard page
+     │       └── Results.jsx           # Results page
+     └── public/                       # Public static assets, if present
+```
+
+**Note:** Some older development copies may exist in nested directories. Use the imports in `frontend/src/App.jsx` and other active source files to determine which files the app actually loads. The optional `public/` directory is shown as a conventional location, not a verified inventory item.
+
+## 4. Application flow
+
+```text
+Browser (React / Vite)
+         |
+         | HTTP requests, authorization token
+         v
+Express REST API (Node.js / Render)
+         |
+         | Mongoose queries and updates
+         v
+MongoDB database (Atlas)
+```
+
+Typical flow:
+
+1. The user opens GamePortal in a browser.
+2. The React frontend requests data through Axios and/or Redux Toolkit Query.
+3. Express validates the request and checks authentication/authorization as appropriate.
+4. Mongoose reads or updates MongoDB records.
+5. Express returns JSON to the frontend.
+6. React renders the result and updates the user interface.
+
+Discord OAuth introduces a browser redirect to Discord, followed by a callback to the backend and a redirect back to the frontend.
+
+## 5. Local installation — Windows / VS Code
+
+### Prerequisites
+
+- Node.js and npm
+- Git
+- VS Code (recommended)
+- A MongoDB connection string (local MongoDB or MongoDB Atlas)
+- A Discord application, **only if testing Discord sign-in**
+
+### Clone the project
+
+Open **PowerShell** in a folder where you want to keep the project:
+
+```powershell
+git clone https://github.com/aksshuuu/gameportal.git
+cd gameportal
+```
+
+If you have already cloned the project, open the existing folder instead.
+
+### Configure and start the backend
+
+```powershell
+cd backend
+npm install
+Copy-Item .env.example .env
+```
+
+Edit `backend/.env` and supply values appropriate to your local setup. At minimum, set your MongoDB connection URI and a strong, randomly generated JWT secret. Check `backend/.env.example` and the server source for the complete set of expected variables.
+
+Example values **for illustration only**:
+
+```dotenv
+PORT=5000
+NODE_ENV=development
+MONGO_URI=YOUR_PRIVATE_MONGODB_CONNECTION_STRING
+JWT_SECRET=YOUR_LONG_RANDOM_JWT_SECRET
+FRONTEND_URL=http://localhost:5173
+DISCORD_CLIENT_ID=YOUR_DISCORD_APP_ID
+DISCORD_CLIENT_SECRET=YOUR_PRIVATE_DISCORD_SECRET
+DISCORD_REDIRECT_URI=http://localhost:5000/api/auth/discord/callback
+```
+
+The Discord settings are necessary only if Discord login is enabled locally. Register the exact local callback URL in the appropriate Discord Developer application before testing. Never use real credentials in README files, commits, screenshots, or chat messages.
+
+Start the backend:
+
+```powershell
+npm run dev
+```
+
+The backend is normally available at `http://localhost:5000`. To check service health, open `http://localhost:5000/health`.
+
+### Configure and start the frontend
+
+Open a **second PowerShell terminal** in the repository root:
+
+```powershell
+cd frontend
+npm install
+```
+
+Create `frontend/.env` if you need to specify your local API address:
+
+```dotenv
+VITE_API_URL=http://localhost:5000/api
+```
+
+Then start the development server:
+
+```powershell
+npm run dev
+```
+
+Open the localhost address printed by Vite (normally `http://localhost:5173`).
+
+**Important:** `VITE_` variables become visible in the browser bundle; never put secrets in them.
+
+### Build and check the frontend
+
+Inside `frontend/`:
+
+```powershell
+npm run build
+```
+
+The build output is generated in `frontend/dist/`.
+
+## 6. Authentication and user roles
+
+### Player
+
+- Create an account and sign in.
+- Browse tournaments and dates.
+- Join eligible tournaments.
+- Unregister from a tournament.
+- View player-related dashboard data.
+
+### Organizer
+
+- Create an account and sign in.
+- Create tournaments using validated inputs.
+- View organizer-related dashboard data.
+- Manage and delete tournaments they are authorized to control.
+
+### Discord login
+
+- The frontend sends the user to the backend's Discord authorization route.
+- Discord prompts for authorization and redirects to the configured backend callback.
+- The backend validates the OAuth flow and establishes application authentication.
+- The frontend callback handles successful sign-in, and the navigation synchronizes its state.
+
+An existing email/password account should not be silently linked to a Discord account just because the email addresses match.
+
+## 7. API overview
+
+The API is served under `/api`. Key endpoints used by the application include:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/health` | Server/database health check |
+| POST | `/api/auth/register` | Register an email/password user |
+| POST | `/api/auth/login` | Authenticate an existing user |
+| GET | `/api/auth/me` | Retrieve the current authenticated profile |
+| GET | `/api/auth/discord` | Start Discord authorization |
+| GET | `/api/auth/discord/callback` | Process Discord authorization response |
+| GET | `/api/tournaments` | List tournaments |
+
+The tournament routes also implement creation, joining, leaving, and deletion. For the exact HTTP verbs, paths, request shapes, and authorization checks, consult `backend/routes/tournaments.js`. Do not infer endpoint contracts solely from this summary.
+
+## 8. Production deployment
+
+### Backend — Render
+
+1. Connect the GitHub repository to Render.
+2. Set the service root directory to `backend`.
+3. Install dependencies with `npm install` (or the chosen locked-dependency workflow).
+4. Start with `npm start` (`node server.js`).
+5. Configure the required environment variables privately in Render.
+6. Deploy and verify `/health`.
+
+Production backend: https://gameportal-backend.onrender.com
+
+### Frontend — Vercel
+
+1. Import the same GitHub repository into Vercel.
+2. Set the project root directory to `frontend`.
+3. Use the Vite build command `npm run build`.
+4. Use `dist` as the output directory.
+5. Configure:
+
+```dotenv
+VITE_API_URL=https://gameportal-backend.onrender.com/api
+```
+
+6. Deploy and verify the production website.
+
+Production frontend: https://gameportal-sable.vercel.app
+
+### Discord production callback
+
+The registered Discord OAuth2 redirect must exactly match the backend value, for example:
+
+```text
+https://gameportal-backend.onrender.com/api/auth/discord/callback
+```
+
+Make sure the configured Discord application ID and secret belong to the same Discord application where that redirect is registered.
+
+## 9. Functional verification checklist
+
+The following scenarios were manually tested in the development walkthrough:
+
+- [x] Player registration and login
+- [x] Organizer registration and login
+- [x] Discord registration and login
+- [x] Navbar changes after login without manual refresh
+- [x] Tournament dates load on the Matches page
+- [x] Organizer creates a test tournament
+- [x] Player joins the test tournament
+- [x] Player unregisters from the test tournament
+- [x] Organizer deletes the test tournament
+- [x] Frontend production build completes successfully
+- [x] Frontend and backend production deployments were reported ready
+
+### Further checks recommended before wider release
+
+- [ ] Verify authorization and ownership for all privileged endpoints
+- [ ] Test duplicate registrations and race conditions under concurrent traffic
+- [ ] Test capacity limits and closed tournaments
+- [ ] Test expired tokens, failed OAuth flows, and secure account linking
+- [ ] Run automated unit and integration tests
+- [ ] Test accessibility, mobile responsiveness, and browser compatibility
+- [ ] Perform security and load testing
+
+## 10. Troubleshooting
+
+| Problem | Check |
+| --- | --- |
+| `Invalid OAuth2 redirect_uri` | Exact Discord Developer Portal redirect, `DISCORD_REDIRECT_URI`, and Discord application ID |
+| Login succeeds but navbar looks logged out | OAuth callback, browser token, `gameportal-auth-change`, and `/api/auth/me` synchronization |
+| Tournament dates do not load | Backend `/health`, `/api/tournaments`, browser network errors, and `VITE_API_URL` |
+| Local website shows default fonts/white background | Check that `frontend/src/index.css` is intact and imported by `main.jsx` |
+| Vite cannot find a component | Check the exact import path and file casing; avoid editing old duplicate copies |
+| PowerShell reports an unknown `.css` class or `import` | Paste CSS/JavaScript into the VS Code editor, not the PowerShell terminal |
+| MongoDB won't connect | Verify `MONGO_URI`, database access rules, and Render logs |
+| Git shows unexpected changed files | Review `git status --short` before staging; stage only intended files |
+
+## 11. Safely updating the README on GitHub
+
+If you have uncommitted design changes, **do not run `git add .`**.
+
+From the repository root (`gameportal-updated` if using the existing Windows clone):
+
+```powershell
+git status --short
+git branch --show-current
+```
+
+Copy the new README into the repository root as `README.md`. Then stage **only** the documentation file:
+
+```powershell
+git add README.md
+git diff --cached --name-only
+```
+
+The staged list should show `README.md` only. Then commit and push the current branch:
+
+```powershell
+git commit -m "docs: update GamePortal README"
+git push
+```
+
+If you're working on a feature branch, create a Pull Request into `main` to publish the README there. Alternatively, first ensure you are on `main` **without overwriting or carrying unintended local changes**. Never force-push documentation changes.
+
+## 12. Security and development notes
+
+- Keep `.env` files and credentials out of Git.
+- Treat environment variable examples as placeholders, not actual configuration.
+- Protect privileged backend routes, even if the frontend hides related controls.
+- Review the production security configuration before inviting external users.
+- Do not include secrets or personal user data in screenshots or demo documentation.
+- Commit and deploy UI experiments only after local testing and approval.
+
+---
+
+**GamePortal:** *Play with purpose.*  
+*Find your next tournament, gather your squad and follow every result — all in one place.*
